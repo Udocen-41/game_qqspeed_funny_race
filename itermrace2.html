@@ -35,7 +35,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* 标题统一使用加粗系统字体 */
 .syne, .home-title, .mode-name, .panel-title, .team-label, .team-score, .round-banner .rname, .win-h, .spc-name, .btn, .nav-title, .adv-section-title {
   font-family: system-ui, -apple-system, 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-weight: 700;
@@ -181,12 +180,11 @@ body::before {
 }
 .back-btn { border: 1px solid var(--border); }
 
-/* 🔧 修复下拉菜单字体过大问题 */
 input, select, textarea {
   background: var(--bg);
   border: 1px solid var(--border);
   font-family: inherit;
-  font-size: 12px;      /* 统一移动端舒适字体 */
+  font-size: 12px;
   padding: 8px 10px;
   outline: none;
   color: var(--text);
@@ -194,7 +192,7 @@ input, select, textarea {
   transition: 0.2s;
   width: 100%;
 }
-/* 下拉菜单的选项文字也强制一致 */
+
 select option {
   font-size: 12px;
   padding: 6px;
@@ -293,7 +291,6 @@ button { cursor: pointer; background: none; }
 .gopt.correct { background: rgba(70,176,101,0.2); border-color: var(--accent2); color: var(--accent2); }
 .gopt.wrong { background: rgba(192,57,43,0.1); border-color: var(--danger); color: var(--danger); }
 
-/* 🔧 积分赛表格字体适配手机 */
 .pts-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .pts-table th { text-align: left; padding: 8px 4px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 11px; }
 .pts-table td { padding: 8px 4px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
@@ -315,7 +312,6 @@ button { cursor: pointer; background: none; }
 .page.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* 下拉菜单箭头优化 */
 select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a8060' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -323,7 +319,7 @@ select {
   background-position: right 10px center;
   padding-right: 28px;
 }
-/* 积分赛下拉菜单宽度自适应手机 */
+
 .pts-table select {
   width: 100%;
   min-width: 88px;
@@ -493,7 +489,7 @@ select {
 </div>
 
 <script>
-// ========== 完全保留原 itemrace 所有 JavaScript 逻辑，无任何改动 ==========
+
 const AC=['#008E6B','#46B065','#2e7d52','#81C570','#005c45','#3a9e60','#6ab85a','#007a58'];
 
 function lsG(k,fb){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):fb;}catch(e){return fb;}}
@@ -513,7 +509,6 @@ function goHome(){
   document.getElementById('page-home').classList.add('active');
 }
 
-// SPY (完整保留)
 let ss={
   names:lsG('ss_names',[]),
   tA:lsG('ss_tA',[]),tB:lsG('ss_tB',[]),
@@ -648,7 +643,7 @@ function spyConfirm(){
     else if(n===ss.gL&&!lOK)b.classList.add('wrong');
   });
   const total=(ss.tA.length+ss.tB.length)*5;
-  let h=`<div class="panel" style="margin-top:12px"><div class="panel-title">押金结算</div>`;
+  let h=`<div class="panel" style="margin-top:12px"><div class="panel-title">奖池结算</div>`;
   h+=`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;"><span>总奖池</span><span style="color:var(--accent);font-weight:700;">${total}（每人5个奖励）</span></div>`;
   h+=`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;"><span>${W}队全员 + 潜伏在${L}队的卧底 ${spyInL}</span><span style="color:var(--accent2);font-weight:700;">瓜分奖池</span></div>`;
   h+=wOK?`<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>${W}队找对卧底 ✓</span><span style="color:var(--accent2);">${spyInW} 发2个奖励</span></div>`
@@ -660,7 +655,6 @@ function spyConfirm(){
   document.getElementById('spy-settle').scrollIntoView({behavior:'smooth'});
 }
 
-// PTS (修改为每3轮一个周期，每个周期积分从0开始)
 const PTS_TBL=[5,4,3,2,1,0,0,0,0,0];
 let ps={
   players:lsG('ps_players',[]),
@@ -754,7 +748,6 @@ function ptsRenderAdv(){
   el.innerHTML=`<div class="alert">每完成3轮积分，末三位加入大冒险，积分重置</div>`+ps.advGroups.map(g=>{const sorted=[...ps.players].sort((a,b)=>(ps.scores[b]||0)-(ps.scores[a]||0));const winners=sorted.filter(p=>!g.losers.includes(p));return `<div class="adv-section"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span class="adv-section-title" style="font-weight:700;">第 ${g.cycle} 周期</span><span style="font-size:10px;background:rgba(70,176,101,0.12);padding:2px 8px;border-radius:40px;">大冒险 ×${g.losers.length}</span></div><div style="margin-bottom:4px;font-size:11px;">末三位 · 需参加大冒险</div><div>${g.losers.map(p=>`<span class="loser-chip" style="background:rgba(192,57,43,0.1);padding:4px 12px;">${p} (${g.scores[p]}分)</span>`).join('')}</div>${winners.length?`<div style="margin-top:8px;font-size:11px;">其余玩家</div><div>${winners.map(p=>`<span class="winner-chip" style="background:rgba(70,176,101,0.1);padding:4px 12px;">${p}</span>`).join('')}</div>`:''}</div>`;}).join('');
 }
 
-// RACE 冲线对抗赛（新增模块，独立状态，不影响 SPY / PTS）
 let rs={
   names:lsG('rs_names',[]),
   teamA:lsG('rs_teamA',[]),teamB:lsG('rs_teamB',[]),
