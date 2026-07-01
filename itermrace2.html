@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover"/>
+<title>5941</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #FBFFF2;
+  --surface: #eaf4d0;
+  --border:  rgba(0,142,107,0.22);
+  --accent:  #008E6B;
+  --accent2: #46B065;
+  --text:    #003d2a;
+  --muted:   #5a8060;
+  --danger:  #c0392b;
+  --warn:    #e67e22;
+  --radius: 20px;
+  --radius-sm: 12px;
+}
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% 25%, rgba(129,197,112,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 75%, rgba(0,142,107,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 70% at 50% 50%, rgba(220,236,181,0.4) 0%, transparent 70%);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 标题统一使用加粗系统字体 */
+.syne, .home-title, .mode-name, .panel-title, .team-label, .team-score, .round-banner .rname, .win-h, .spc-name, .btn, .nav-title, .adv-section-title {
+  font-family: system-ui, -apple-system, 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 700;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,142,107,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,142,107,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+}
+
+/* ========== 首页模式选择 ========== */
+.home-header { text-align: center; margin-bottom: 40px; }
+.logo-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  background: rgba(0,142,107,0.1);
+  border: 1px solid rgba(0,142,107,0.3);
+  display: inline-block;
+  padding: 4px 12px;
+  margin-bottom: 16px;
+}
+.home-title {
+  font-size: clamp(1.8rem, 7vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.home-title span { color: var(--accent); }
+.home-sub {
+  margin-top: 8px;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 32px 0 24px;
+}
+@media (max-width: 640px) { .mode-grid { gap: 12px; } }
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  backdrop-filter: blur(2px);
+}
+.mode-card:hover { transform: translateY(-3px); border-color: var(--accent2); }
+.mode-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.mode-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.mode-card.spy .mode-name { color: var(--accent); }
+.mode-card.pts .mode-name { color: var(--accent2); }
+.mode-card.race .mode-name { color: var(--danger); }
+
+/* ========== 通用面板&卡片 ========== */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-sm);
+}
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* 导航栏 */
+.nav {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  border-radius: 60px;
+}
+.nav-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+}
+.tab-btn, .back-btn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--muted);
+  font-family: inherit;
+}
+.tab-btn:hover, .back-btn:hover { background: rgba(0,142,107,0.08); color: var(--accent); }
+.tab-btn.active {
+  background: var(--accent);
+  color: #FBFFF2;
+  box-shadow: 0 2px 6px rgba(0,142,107,0.2);
+}
+.back-btn { border: 1px solid var(--border); }
+
+/* 🔧 修复下拉菜单字体过大问题 */
+input, select, textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 12px;      /* 统一移动端舒适字体 */
+  padding: 8px 10px;
+  outline: none;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  transition: 0.2s;
+  width: 100%;
+}
+/* 下拉菜单的选项文字也强制一致 */
+select option {
+  font-size: 12px;
+  padding: 6px;
+}
+
+input:focus, select:focus { border-color: var(--accent); }
+button { cursor: pointer; background: none; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 600;
+  border: none;
+  border-radius: 60px;
+  padding: 8px 16px;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-ghost:hover { background: rgba(0,142,107,0.08); border-color: var(--accent); }
+.btn-danger {
+  background: rgba(192,57,43,0.08);
+  color: var(--danger);
+  border: 1px solid rgba(192,57,43,0.3);
+}
+.btn-sm { padding: 5px 12px; font-size: 11px; }
+.row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.flex-1 { flex: 1; min-width: 0; }
+
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(0,142,107,0.12);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; color: var(--accent);
+  flex-shrink: 0;
+}
+
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  margin-bottom: 14px;
+  background: rgba(0,142,107,0.07);
+  border-left: 3px solid var(--accent2);
+  color: var(--text);
+}
+
+/* 卧底战特有组件 */
+.teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 640px) { .teams-grid { gap: 12px; } }
+.team-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: var(--radius-sm);
+}
+.team-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.tl-a { color: var(--accent2); } .tl-b { color: var(--accent); }
+.team-score { font-size: 32px; font-weight: 800; line-height: 1; margin: 4px 0 2px; }
+.prog-wrap { background: var(--bg); border-radius: 4px; height: 5px; overflow: hidden; margin: 10px 0; }
+.prog-bar { height: 100%; background: var(--accent); transition: width 0.3s; }
+.p-row {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--bg); margin-bottom: 5px;
+  border-radius: 40px; font-size: 12px; border: 1px solid transparent;
+}
+.p-row.on-field { background: rgba(0,142,107,0.08); border-color: rgba(0,142,107,0.3); }
+.spy-tag, .field-tag { font-size: 8px; padding: 2px 6px; border-radius: 20px; background: rgba(0,142,107,0.12); margin-left: auto; white-space: nowrap; }
+.round-banner { background: var(--surface); border: 1px solid var(--border); text-align: center; padding: 16px; margin-bottom: 18px; border-radius: var(--radius-sm); }
+.rnum { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.rname { font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 4px; }
+.field-row { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+.fchip { flex: 1; padding: 6px; border-radius: 40px; text-align: center; background: var(--bg); border: 1px solid var(--border); font-size: 12px; }
+.fca { border-left: 3px solid var(--accent2); } .fcb { border-left: 3px solid var(--accent); }
+.win-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.wbtn { padding: 10px; border-radius: 60px; font-weight: 700; background: transparent; border: 1px solid var(--border); cursor: pointer; transition: 0.15s; font-size: 13px; }
+.wbtn-a { color: var(--accent2); border-color: var(--accent2); } .wbtn-a:hover { background: var(--accent2); color: white; }
+.wbtn-b { color: var(--accent); border-color: var(--accent); } .wbtn-b:hover { background: var(--accent); color: white; }
+.win-screen { text-align: center; padding: 20px 0; }
+.spy-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.spy-chip { padding: 12px; background: var(--bg); border-radius: 16px; text-align: center; }
+.guess-opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.gopt { padding: 5px 14px; border-radius: 40px; border: 1px solid var(--border); background: var(--bg); cursor: pointer; transition: 0.1s; font-size: 12px; }
+.gopt.selected { background: var(--accent); color: white; border-color: var(--accent); }
+.gopt.correct { background: rgba(70,176,101,0.2); border-color: var(--accent2); color: var(--accent2); }
+.gopt.wrong { background: rgba(192,57,43,0.1); border-color: var(--danger); color: var(--danger); }
+
+/* 🔧 积分赛表格字体适配手机 */
+.pts-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.pts-table th { text-align: left; padding: 8px 4px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 11px; }
+.pts-table td { padding: 8px 4px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
+.rank-badge { display: inline-flex; width: 24px; height: 24px; border-radius: 50%; background: var(--bg); align-items: center; justify-content: center; font-weight: 800; font-size: 11px; }
+.rb1 { background: rgba(0,142,107,0.15); color: var(--accent); } .rb2 { background: rgba(70,176,101,0.12); color: var(--accent2); }
+.pdots { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+.pdot { width: 24px; height: 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--border); transition: 0.2s; }
+.pdot.done { background: var(--accent2); border-color: var(--accent2); }
+.pdot.active { background: var(--accent); border-color: var(--accent); transform: scale(1.05); }
+.adv-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+.loser-chip, .winner-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 40px; margin: 4px; background: rgba(0,142,107,0.08); font-size: 11px; }
+
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent); color: white; padding: 8px 20px;
+  border-radius: 60px; font-weight: 500; font-size: 12px; transition: 0.2s; z-index: 1000; opacity: 0; white-space: normal; text-align: center; max-width: 85vw;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.page { display: none; animation: fadeIn 0.2s; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 下拉菜单箭头优化 */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a8060' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+/* 积分赛下拉菜单宽度自适应手机 */
+.pts-table select {
+  width: 100%;
+  min-width: 88px;
+  font-size: 11px;
+  padding: 6px 22px 6px 6px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="home-header">
+    <div class="logo-tag">解释权归似绎所有</div>
+    <div class="home-title">模式选择</div>
+  </div>
+  <div class="mode-grid">
+    <div class="mode-card spy" onclick="selectMode('spy')">
+      <div class="mode-name">组队卧底战</div>
+      <div class="mode-desc">两队对战，各藏一名卧底<br/>先积 10 分获胜</div>
+    </div>
+    <div class="mode-card pts" onclick="selectMode('pts')">
+      <div class="mode-name">个人积分赛</div>
+      <div class="mode-desc">多轮角逐，每3轮末三位<br/>触发大冒险惩罚</div>
+    </div>
+    <div class="mode-card race" onclick="selectMode('race')">
+      <div class="mode-name">冲线对抗赛</div>
+      <div class="mode-desc">六人两队，随机冲线人<br/>先到 5 分获胜</div>
+    </div>
+  </div>
+  <div class="alert">游戏进度会自动保存，刷新后可继续</div>
+</div>
+
+<!-- SPY MODE -->
+<div id="page-spy" class="page">
+  <div class="nav">
+    <button class="back-btn" onclick="goHome()">← 返回</button>
+    <div class="nav-title">卧底战</div>
+    <button class="tab-btn active" id="stab-setup" onclick="spyTab('setup')">名单</button>
+    <button class="tab-btn" id="stab-game" onclick="spyTab('game')">积分</button>
+    <button class="tab-btn" id="stab-result" onclick="spyTab('result')">结算</button>
+  </div>
+
+  <div id="spy-pg-setup" class="page active">
+    <div class="panel"><div class="panel-title">输入参赛者（至少 4 人，偶数）</div>
+      <div id="spy-name-list"></div>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="spy-name-inp" placeholder="名字（回车添加）" maxlength="10" onkeydown="if(event.key==='Enter')spyAddName()"/>
+        <button class="btn btn-ghost btn-sm" onclick="spyAddName()">添加</button>
+      </div>
+    </div>
+    <div class="alert">系统随机分队并分配卧底，每轮每队3人出战（轮换制）</div>
+    <button class="btn btn-primary" onclick="spyStart()" style="width:100%">随机分组 · 开始游戏</button>
+  </div>
+
+  <div id="spy-pg-game" class="page">
+    <div class="round-banner"><div class="rnum" id="spy-rnum">ROUND 1 / 10</div><div class="rname" id="spy-rname">第 1 局</div></div>
+    <div class="teams-grid">
+      <div class="team-card"><div class="team-label tl-a">队伍 A</div><div class="team-score" id="spy-sa">0</div><div class="score-sub" style="font-size:9px;color:var(--muted)">/ 10 分</div><div class="prog-wrap"><div class="prog-bar" id="spy-bara" style="width:0%"></div></div><div id="spy-pa"></div></div>
+      <div class="team-card"><div class="team-label tl-b">队伍 B</div><div class="team-score" id="spy-sb">0</div><div class="score-sub" style="font-size:9px;color:var(--muted)">/ 10 分</div><div class="prog-wrap"><div class="prog-bar" id="spy-barb" style="width:0%"></div></div><div id="spy-pb"></div></div>
+    </div>
+    <div class="panel"><div class="panel-title">本局上场</div>
+      <div style="margin-bottom:6px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px">A 队</div><div class="field-row" id="spy-fa"></div></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:4px">B 队</div><div class="field-row" id="spy-fb"></div></div>
+      <div class="win-row"><button class="wbtn wbtn-a" onclick="spyWin('A')">A 队赢了</button><button class="wbtn wbtn-b" onclick="spyWin('B')">B 队赢了</button></div>
+    </div>
+    <div class="panel" id="spy-hist-card" style="display:none"><div class="panel-title">对局记录</div><div id="spy-hist"></div></div>
+  </div>
+
+  <div id="spy-pg-result" class="page">
+    <div class="win-screen"><div class="win-h" id="spy-win-h" style="font-size:26px;font-weight:800;color:var(--accent);">A 队胜利</div><div class="win-s" style="font-size:11px;color:var(--muted);" id="spy-win-s"></div></div>
+    <div class="panel"><div class="panel-title">卧底揭晓</div><div class="spy-chips" id="spy-chips"></div></div>
+    <div class="panel"><div class="panel-title">胜利队指认卧底</div><div style="font-size:11px;color:var(--muted);margin-bottom:6px" id="spy-lw"></div><div id="spy-opts-w" class="guess-opts"></div></div>
+    <div class="panel"><div class="panel-title">失败队指认卧底</div><div style="font-size:11px;color:var(--muted);margin-bottom:6px" id="spy-ll"></div><div id="spy-opts-l" class="guess-opts"></div></div>
+    <button class="btn btn-primary" onclick="spyConfirm()" style="width:100%;margin-bottom:12px">确认指认 · 结算</button>
+    <div id="spy-settle"></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn btn-ghost btn-sm" onclick="spyReset()">↩ 重新开始</button></div>
+  </div>
+</div>
+
+<!-- PTS MODE -->
+<div id="page-pts" class="page">
+  <div class="nav">
+    <button class="back-btn" onclick="goHome()">← 返回</button>
+    <div class="nav-title">积分赛</div>
+    <button class="tab-btn active" id="ptab-setup" onclick="ptsTab('setup')">名单</button>
+    <button class="tab-btn" id="ptab-game" onclick="ptsTab('game')">积分</button>
+    <button class="tab-btn" id="ptab-adv" onclick="ptsTab('adv')">大冒险</button>
+  </div>
+
+  <div id="pts-pg-setup" class="page active">
+    <div class="panel"><div class="panel-title">玩家名单（2 ~ 10 人）</div><div id="pts-name-list"></div>
+    <div class="row" style="margin-top:12px" id="pts-add-row"><input type="text" id="pts-name-inp" class="flex-1" placeholder="输入玩家名字（回车添加）" maxlength="10" onkeydown="if(event.key==='Enter')ptsAddName()"/><button class="btn btn-ghost btn-sm" onclick="ptsAddName()">添加</button></div></div>
+    <div class="alert">每 3 轮结束后，末三位自动记入大冒险名单，下轮周期积分重置</div>
+    <button class="btn btn-primary" onclick="ptsStart()" style="width:100%">开始游戏</button>
+  </div>
+
+  <div id="pts-pg-game" class="page">
+    <div class="panel"><div class="pdots" id="pts-dots"></div><div id="pts-alert"></div>
+    <table class="pts-table"><thead><tr><th>排名</th><th>玩家</th><th>本轮名次</th><th>总积分</th></tr></thead><tbody id="pts-tbody"></tbody></table>
+    <div style="margin-top:14px"><button class="btn btn-primary" onclick="ptsConfirm()" style="width:100%">确认本轮 →</button></div></div>
+    <div class="panel" id="pts-hist-card" style="display:none"><div class="panel-title">历史记录</div><div id="pts-hist"></div></div>
+  </div>
+
+  <div id="pts-pg-adv" class="page"><div id="pts-adv-content"><div class="alert">每完成 3 轮积分，末三位自动加入下方大冒险名单</div></div><div style="margin-top:12px"><button class="btn btn-danger btn-sm" onclick="ptsReset()" style="width:100%">重置所有数据</button></div></div>
+</div>
+
+<!-- RACE MODE -->
+<div id="page-race" class="page">
+  <div class="nav">
+    <button class="back-btn" onclick="goHome()">← 返回</button>
+    <div class="nav-title">冲线对抗赛</div>
+    <button class="tab-btn active" id="rtab-setup" onclick="raceTab('setup')">名单</button>
+    <button class="tab-btn" id="rtab-game" onclick="raceTab('game')">比赛</button>
+    <button class="tab-btn" id="rtab-result" onclick="raceTab('result')">结算</button>
+  </div>
+
+  <div id="race-pg-setup" class="page active">
+    <div class="panel"><div class="panel-title">输入参赛者（恰好 6 人，每人2个大冒险）</div>
+      <div id="race-name-list"></div>
+      <div class="row" style="margin-top:12px" id="race-add-row">
+        <input type="text" id="race-name-inp" class="flex-1" placeholder="名字（回车添加）" maxlength="10" onkeydown="if(event.key==='Enter')raceAddName()"/>
+        <button class="btn btn-ghost btn-sm" onclick="raceAddName()">添加</button>
+      </div>
+    </div>
+    <div class="alert">系统随机分成两队（3人/队，整局不变）。每局开始两队各随机抽一名冲线人；只有冲线人冲线才算赢，双方都非冲线人冲线则全员各记一次大冒险。先到 5 分获胜。</div>
+    <button class="btn btn-primary" onclick="raceStart()" style="width:100%">随机分队 · 开始游戏</button>
+  </div>
+
+  <div id="race-pg-game" class="page">
+    <div class="round-banner"><div class="rnum" id="race-rnum">ROUND 1</div><div class="rname" id="race-rname">第 1 局</div></div>
+    <div class="teams-grid">
+      <div class="team-card"><div class="team-label tl-a">队伍 A</div><div class="team-score" id="race-sa">0</div><div class="score-sub" style="font-size:9px;color:var(--muted)">/ 5 分</div><div class="prog-wrap"><div class="prog-bar" id="race-bara" style="width:0%"></div></div><div id="race-pa"></div></div>
+      <div class="team-card"><div class="team-label tl-b">队伍 B</div><div class="team-score" id="race-sb">0</div><div class="score-sub" style="font-size:9px;color:var(--muted)">/ 5 分</div><div class="prog-wrap"><div class="prog-bar" id="race-barb" style="width:0%"></div></div><div id="race-pb"></div></div>
+    </div>
+    <div class="panel"><div class="panel-title">本局冲线人（随机，每局重新抽取，可重复）</div>
+      <div class="field-row" id="race-finishers"></div>
+      <div class="panel-title" style="margin-top:14px">本局结果</div>
+      <div class="win-row">
+        <button class="wbtn wbtn-a" onclick="raceResult('A')">仅 A 冲线人冲线</button>
+        <button class="wbtn wbtn-b" onclick="raceResult('B')">仅 B 冲线人冲线</button>
+      </div>
+      <div class="win-row" style="margin-top:8px">
+        <button class="wbtn wbtn-a" onclick="raceResult('ABA')">双方都冲线 · A 先</button>
+        <button class="wbtn wbtn-b" onclick="raceResult('ABB')">双方都冲线 · B 先</button>
+      </div>
+      <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="raceResult('NONE')">双方都非冲线人冲线（不计分，全员 +1 大冒险）</button>
+    </div>
+    <div class="panel" id="race-hist-card" style="display:none"><div class="panel-title">对局记录</div><div id="race-hist"></div></div>
+  </div>
+
+  <div id="race-pg-result" class="page">
+    <div class="win-screen"><div class="win-h" id="race-win-h" style="font-size:26px;font-weight:800;color:var(--accent);">A 队胜利</div><div class="win-s" style="font-size:11px;color:var(--muted);" id="race-win-s"></div></div>
+    <div class="panel"><div class="panel-title">结算 · 赢方 3 人指定大冒险</div><div id="race-winners"></div></div>
+    <div class="panel"><div class="panel-title">输方 · 三人各执行 3 个大冒险（共9个）</div>
+      <div id="race-loser-list"></div>
+    </div>
+    <div class="panel"><div class="panel-title">全员大冒险累计次数（用转盘执行）</div><div id="race-adv-count"></div></div>
+    <button class="btn btn-primary" onclick="raceConfirm()" style="width:100%;margin-bottom:12px">生成最终结果</button>
+    <div id="race-settle"></div>
+    <div style="text-align:center;margin-top:16px"><button class="btn btn-ghost btn-sm" onclick="raceReset()">↩ 重新开始</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ========== 完全保留原 itemrace 所有 JavaScript 逻辑，无任何改动 ==========
+const AC=['#008E6B','#46B065','#2e7d52','#81C570','#005c45','#3a9e60','#6ab85a','#007a58'];
+
+function lsG(k,fb){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):fb;}catch(e){return fb;}}
+function lsS(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+function selectMode(m){
+  document.getElementById('page-home').classList.remove('active');
+  document.getElementById('page-'+m).classList.add('active');
+  if(m==='spy')spyRenderSetup();
+  else if(m==='race')raceRenderSetup();
+  else ptsRenderSetup();
+}
+function goHome(){
+  document.querySelectorAll('#page-spy,#page-pts,#page-race,#page-home').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-home').classList.add('active');
+}
+
+// SPY (完整保留)
+let ss={
+  names:lsG('ss_names',[]),
+  tA:lsG('ss_tA',[]),tB:lsG('ss_tB',[]),
+  spyA:lsG('ss_spyA',0),spyB:lsG('ss_spyB',0),
+  scA:lsG('ss_scA',0),scB:lsG('ss_scB',0),
+  round:lsG('ss_round',1),fi:lsG('ss_fi',0),
+  hist:lsG('ss_hist',[]),winner:lsG('ss_winner',null),
+  active:lsG('ss_active',false),
+  gW:null,gL:null
+};
+function ssSave(){['names','tA','tB','spyA','spyB','scA','scB','round','fi','hist','winner','active'].forEach(k=>lsS('ss_'+k,ss[k]));}
+
+function spyTab(t){
+  ['setup','game','result'].forEach(x=>{
+    document.getElementById('spy-pg-'+x).classList.remove('active');
+    document.getElementById('stab-'+x).classList.remove('active');
+  });
+  document.getElementById('spy-pg-'+t).classList.add('active');
+  document.getElementById('stab-'+t).classList.add('active');
+  if(t==='game')spyRenderGame();
+  if(t==='result'&&ss.winner)spyBuildResult();
+}
+
+function spyRenderSetup(){
+  document.getElementById('spy-name-list').innerHTML=ss.names.map((n,i)=>`
+    <div class="row">
+      <div class="avatar" style="background:${AC[i%AC.length]}22;color:${AC[i%AC.length]};">${n.charAt(0).toUpperCase()}</div>
+      <input type="text" class="flex-1" value="${n}" onchange="ss.names[${i}]=this.value.trim()||ss.names[${i}];ssSave()" style="height:34px"/>
+      <button class="btn-icon" style="width:30px;height:30px;border-radius:40px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;" onclick="ss.names.splice(${i},1);ssSave();spyRenderSetup()">×</button>
+    </div>`).join('');
+}
+function spyAddName(){
+  const inp=document.getElementById('spy-name-inp');
+  const v=inp.value.trim();if(!v)return;
+  if(ss.names.includes(v)){toast('名字重复了');return;}
+  ss.names.push(v);inp.value='';ssSave();spyRenderSetup();
+}
+function spyStart(){
+  if(ss.names.length<4){toast('至少需要 4 位参赛者');return;}
+  if(ss.names.length%2!==0){toast('参赛者须为偶数人');return;}
+  const s=shuffle(ss.names);
+  const h=s.length/2;
+  ss.tA=s.slice(0,h);ss.tB=s.slice(h);
+  ss.spyA=Math.floor(Math.random()*h);
+  ss.spyB=Math.floor(Math.random()*h);
+  ss.scA=0;ss.scB=0;ss.round=1;ss.fi=0;ss.hist=[];ss.winner=null;ss.active=true;ss.gW=null;ss.gL=null;
+  ssSave();spyRenderGame();spyTab('game');
+}
+function spyReset(){ss.active=false;ss.winner=null;ss.tA=[];ss.tB=[];ss.hist=[];ss.round=1;ss.fi=0;ss.scA=0;ss.scB=0;ssSave();spyRenderSetup();spyTab('setup');}
+function spyFieldOf(t){const p=t==='A'?ss.tA:ss.tB;const s=ss.fi%p.length;return Array.from({length:Math.min(3,p.length)},(_,j)=>p[(s+j)%p.length]);}
+function spyRenderGame(){
+  document.getElementById('spy-rnum').textContent=`ROUND ${ss.round} / 10`;
+  document.getElementById('spy-rname').textContent=`第 ${ss.round} 局`;
+  document.getElementById('spy-sa').textContent=ss.scA;
+  document.getElementById('spy-sb').textContent=ss.scB;
+  document.getElementById('spy-bara').style.width=Math.min(100,ss.scA*10)+'%';
+  document.getElementById('spy-barb').style.width=Math.min(100,ss.scB*10)+'%';
+  spyRenderTeam('A');spyRenderTeam('B');
+  spyRenderField();spyRenderHist();
+}
+function spyRenderTeam(t){
+  const el=document.getElementById('spy-p'+t.toLowerCase());
+  const arr=t==='A'?ss.tA:ss.tB;
+  const fp=spyFieldOf(t);
+  const si=t==='A'?ss.spyA:ss.spyB;
+  el.innerHTML=arr.map((n,i)=>{
+    const onF=fp.includes(n),isSpy=i===si;
+    return `<div class="p-row ${onF?'on-field':''}">
+      <div class="avatar" style="width:22px;height:22px;font-size:10px;">${n.charAt(0).toUpperCase()}</div>
+      <span>${n}</span>
+      ${isSpy?'<span class="spy-tag">卧底</span>':onF?'<span class="field-tag">出战</span>':''}
+    </div>`;
+  }).join('');
+}
+function spyRenderField(){
+  document.getElementById('spy-fa').innerHTML=spyFieldOf('A').map(n=>`<div class="fchip fca">${n}</div>`).join('');
+  document.getElementById('spy-fb').innerHTML=spyFieldOf('B').map(n=>`<div class="fchip fcb">${n}</div>`).join('');
+}
+function spyRenderHist(){
+  const c=document.getElementById('spy-hist-card');
+  if(!ss.hist.length){c.style.display='none';return;}
+  c.style.display='block';
+  document.getElementById('spy-hist').innerHTML=[...ss.hist].reverse().map(h=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:11px;">
+      <div style="width:20px;height:20px;border-radius:50%;background:rgba(0,142,107,0.12);color:var(--accent);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">${h.r}</div>
+      <span>${h.fa.join('、')} vs ${h.fb.join('、')}</span>
+      <span style="margin-left:auto;font-weight:700;color:${h.w==='A'?'var(--accent2)':'var(--accent)'}">${h.w}队 +1</span>
+    </div>`).join('');
+}
+function spyWin(t){
+  ss.hist.push({r:ss.round,fa:spyFieldOf('A'),fb:spyFieldOf('B'),w:t});
+  if(t==='A')ss.scA++;else ss.scB++;
+  if(ss.scA>=10||ss.scB>=10){ss.winner=t;ssSave();spyBuildResult();spyTab('result');return;}
+  ss.round++;ss.fi++;ssSave();spyRenderGame();
+}
+function spyBuildResult(){
+  const W=ss.winner,L=W==='A'?'B':'A';
+  const wArr=W==='A'?ss.tA:ss.tB,lArr=L==='A'?ss.tA:ss.tB;
+  const siW=W==='A'?ss.spyA:ss.spyB,siL=L==='A'?ss.spyA:ss.spyB;
+  const spyInW=wArr[siW],spyInL=lArr[siL];
+  document.getElementById('spy-win-h').textContent=`队伍 ${W} 胜利`;
+  document.getElementById('spy-win-s').textContent=`${W==='A'?ss.scA:ss.scB} : ${W==='A'?ss.scB:ss.scA} 终结`;
+  document.getElementById('spy-chips').innerHTML=`
+    <div class="spy-chip"><div class="spc-name" style="font-weight:700;font-size:15px;">${spyInW}</div><div class="spc-desc" style="font-size:10px;color:var(--muted);">${L}队潜伏在${W}队的卧底</div></div>
+    <div class="spy-chip"><div class="spc-name" style="font-weight:700;font-size:15px;">${spyInL}</div><div class="spc-desc" style="font-size:10px;color:var(--muted);">${W}队潜伏在${L}队的卧底</div></div>`;
+  document.getElementById('spy-lw').innerHTML=`${W}队指认 · 自己队里谁是${L}队的卧底？`;
+  document.getElementById('spy-ll').innerHTML=`${L}队指认 · 自己队里谁是${W}队的卧底？`;
+  document.getElementById('spy-opts-w').innerHTML=wArr.map(n=>`<button class="gopt" onclick="spyPick('w','${n}',this)">${n}</button>`).join('');
+  document.getElementById('spy-opts-l').innerHTML=lArr.map(n=>`<button class="gopt" onclick="spyPick('l','${n}',this)">${n}</button>`).join('');
+  document.getElementById('spy-settle').innerHTML='';ss.gW=null;ss.gL=null;
+}
+function spyPick(side,name,btn){
+  btn.parentElement.querySelectorAll('.gopt').forEach(b=>b.className='gopt');
+  btn.classList.add('selected');
+  if(side==='w')ss.gW=name;else ss.gL=name;
+}
+function spyConfirm(){
+  if(!ss.gW||!ss.gL){toast('双方都需要指认卧底');return;}
+  const W=ss.winner,L=W==='A'?'B':'A';
+  const wArr=W==='A'?ss.tA:ss.tB,lArr=L==='A'?ss.tA:ss.tB;
+  const siW=W==='A'?ss.spyA:ss.spyB,siL=L==='A'?ss.spyA:ss.spyB;
+  const spyInW=wArr[siW],spyInL=lArr[siL];
+  const wOK=ss.gW===spyInW,lOK=ss.gL===spyInL;
+  document.getElementById('spy-opts-w').querySelectorAll('.gopt').forEach(b=>{
+    const n=b.textContent.trim();b.className='gopt';
+    if(n===spyInW)b.classList.add('correct');
+    else if(n===ss.gW&&!wOK)b.classList.add('wrong');
+  });
+  document.getElementById('spy-opts-l').querySelectorAll('.gopt').forEach(b=>{
+    const n=b.textContent.trim();b.className='gopt';
+    if(n===spyInL)b.classList.add('correct');
+    else if(n===ss.gL&&!lOK)b.classList.add('wrong');
+  });
+  const total=(ss.tA.length+ss.tB.length)*5;
+  let h=`<div class="panel" style="margin-top:12px"><div class="panel-title">押金结算</div>`;
+  h+=`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;"><span>总奖池</span><span style="color:var(--accent);font-weight:700;">${total}（每人5个奖励）</span></div>`;
+  h+=`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;"><span>${W}队全员 + 潜伏在${L}队的卧底 ${spyInL}</span><span style="color:var(--accent2);font-weight:700;">瓜分奖池</span></div>`;
+  h+=wOK?`<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>${W}队找对卧底 ✓</span><span style="color:var(--accent2);">${spyInW} 发2个奖励</span></div>`
+        :`<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>${W}队找错（真实：${spyInW}）✗</span><span style="color:var(--danger);">${W}队每人给 ${spyInW} 1个奖励</span></div>`;
+  h+=lOK?`<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>${L}队找对卧底 ✓</span><span style="color:var(--accent2);">${spyInL} 发2个奖励</span></div>`
+        :`<div style="display:flex;justify-content:space-between;padding:8px 0;"><span>${L}队找错（真实：${spyInL}）✗</span><span style="color:var(--danger);">${L}队每人给 ${spyInL} 1个奖励</span></div>`;
+  h+=`</div>`;
+  document.getElementById('spy-settle').innerHTML=h;
+  document.getElementById('spy-settle').scrollIntoView({behavior:'smooth'});
+}
+
+// PTS (修改为每3轮一个周期，每个周期积分从0开始)
+const PTS_TBL=[5,4,3,2,1,0,0,0,0,0];
+let ps={
+  players:lsG('ps_players',[]),
+  scores:lsG('ps_scores',{}),        // 当前周期积分
+  round:lsG('ps_round',1),           // 总轮次（跨周期累计）
+  started:lsG('ps_started',false),
+  hist:lsG('ps_hist',[]),            // 历史记录 {round, cycle, record, losers?}
+  advGroups:lsG('ps_advGroups',[]),  // 大冒险记录 [{cycle, losers, scores}]
+  cycle:lsG('ps_cycle',1),           // 当前周期号
+  roundInCycle:lsG('ps_roundInCycle',1) // 当前周期内第几轮(1-3)
+};
+let pRoundSc={};
+function psSave(){['players','scores','round','started','hist','advGroups','cycle','roundInCycle'].forEach(k=>lsS('ps_'+k,ps[k]));}
+
+function ptsTab(t){
+  ['setup','game','adv'].forEach(x=>{document.getElementById('pts-pg-'+x).classList.remove('active');document.getElementById('ptab-'+x).classList.remove('active');});
+  document.getElementById('pts-pg-'+t).classList.add('active');document.getElementById('ptab-'+t).classList.add('active');
+  if(t==='game')ptsRenderGame();if(t==='adv')ptsRenderAdv();
+}
+function ptsRenderSetup(){
+  document.getElementById('pts-name-list').innerHTML=ps.players.map((p,i)=>`<div class="row"><div class="avatar" style="background:${AC[i%AC.length]}22;color:${AC[i%AC.length]}">${p.charAt(0).toUpperCase()}</div><input type="text" class="flex-1" value="${p}" onchange="ps.players[${i}]=this.value.trim()||ps.players[${i}];psSave()" style="height:34px"/><button style="width:30px;height:30px;border-radius:40px;background:transparent;border:1px solid var(--border);cursor:pointer;" onclick="delete ps.scores[ps.players[${i}]];ps.players.splice(${i},1);psSave();ptsRenderSetup()">×</button></div>`).join('');
+  document.getElementById('pts-add-row').style.display=ps.players.length>=10?'none':'flex';
+}
+function ptsAddName(){const inp=document.getElementById('pts-name-inp');const n=inp.value.trim();if(!n)return;if(ps.players.includes(n)){toast('名字重复了');return;}if(ps.players.length>=10)return;ps.players.push(n);ps.scores[n]=0;inp.value='';psSave();ptsRenderSetup();}
+function ptsStart(){
+  if(ps.players.length<2){toast('至少需要2人');return;}
+  ps.started=true;
+  ps.round=1;
+  ps.cycle=1;
+  ps.roundInCycle=1;
+  ps.hist=[];
+  ps.advGroups=[];
+  ps.players.forEach(p=>ps.scores[p]=0);
+  pRoundSc={};
+  ps.players.forEach(p=>pRoundSc[p]=null);
+  psSave();ptsRenderGame();ptsTab('game');
+}
+function ptsReset(){
+  ps.scores={};pRoundSc={};ps.round=1;ps.started=false;ps.hist=[];ps.advGroups=[];
+  ps.cycle=1;ps.roundInCycle=1;
+  ps.players.forEach(p=>ps.scores[p]=0);psSave();ptsRenderSetup();ptsTab('setup');
+}
+function ptsRenderGame(){
+  const cycleRound=ps.roundInCycle;
+  const dr=document.getElementById('pts-dots');
+  dr.innerHTML=`<span style="font-size:12px;color:var(--muted);margin-right:10px;">第 <strong style="color:var(--text);">${ps.round}</strong> 轮 · 第${ps.cycle}周期 第${cycleRound}/3轮</span>`;
+  for(let i=1;i<=3;i++){const d=document.createElement('div');d.className='pdot'+(i<cycleRound?' done':i===cycleRound?' active':'');dr.appendChild(d);}
+  document.getElementById('pts-alert').innerHTML=`<div class="alert">为每位玩家分配本轮名次（每人不同），第1名 +${PTS_TBL[0]}分 (当前周期积分)</div>`;
+  const sorted=[...ps.players].sort((a,b)=>(ps.scores[b]||0)-(ps.scores[a]||0));
+  const tb=document.getElementById('pts-tbody');tb.innerHTML='';
+  sorted.forEach((p,rank)=>{const ci=ps.players.indexOf(p);const rc=rank===0?'rb1':rank===1?'rb2':rank===2?'rb3':'rbN';const opts=ps.players.map((_,j)=>`<option value="${j+1}" ${pRoundSc[p]===j+1?'selected':''}>${j+1}名(+${PTS_TBL[j]||0})</option>`).join('');const tr=document.createElement('tr');tr.innerHTML=`<td><span class="rank-badge ${rc}">${rank+1}</span></td><td><div style="display:flex;align-items:center;gap:6px"><div class="avatar" style="width:26px;height:26px;font-size:10px">${p.charAt(0).toUpperCase()}</div><span>${p}</span></div></td><td><select onchange="pRoundSc['${p}']=parseInt(this.value)" style="height:32px;width:100px"><option value="">-- 选择 --</option>${opts}</select></td><td><strong>${ps.scores[p]||0}</strong></td>`;tb.appendChild(tr);});
+  ptsRenderHist();
+}
+function ptsConfirm(){
+  const unset=ps.players.filter(p=>!pRoundSc[p]);if(unset.length){toast('请为所有玩家分配名次');return;}
+  if(new Set(ps.players.map(p=>pRoundSc[p])).size!==ps.players.length){toast('每人名次不能重复');return;}
+  const rec={};
+  ps.players.forEach(p=>{const r=pRoundSc[p];const g=PTS_TBL[r-1]||0;ps.scores[p]=(ps.scores[p]||0)+g;rec[p]={rank:r,gain:g};});
+
+  // 记录历史
+  ps.hist.push({round:ps.round, cycle:ps.cycle, record:rec});
+
+  // 检查是否完成3轮（一个周期）
+  if(ps.roundInCycle === 3){
+    // 末三位进入大冒险
+    const losers=[...ps.players].sort((a,b)=>(ps.scores[a]||0)-(ps.scores[b]||0)).slice(0,Math.min(3,ps.players.length));
+    ps.advGroups.push({
+      cycle:ps.cycle,
+      losers:[...losers],
+      scores:losers.reduce((o,p)=>(o[p]=ps.scores[p],o),{})
+    });
+    // 重置积分，进入下一周期
+    ps.cycle++;
+    ps.roundInCycle=1;
+    ps.players.forEach(p=>ps.scores[p]=0);
+    toast(`第 ${ps.cycle-1} 周期结束！积分已重置，进入第 ${ps.cycle} 周期`);
+  } else {
+    ps.roundInCycle++;
+  }
+  ps.round++;
+  pRoundSc={};
+  ps.players.forEach(p=>pRoundSc[p]=null);
+  psSave();ptsRenderGame();
+}
+function ptsRenderHist(){
+  const c=document.getElementById('pts-hist-card');if(!ps.hist.length){c.style.display='none';return;}c.style.display='block';
+  document.getElementById('pts-hist').innerHTML=ps.hist.slice().reverse().map(r=>{const e=Object.entries(r.record).sort((a,b)=>a[1].rank-b[1].rank).map(([p,v])=>`${p} 第${v.rank}名(+${v.gain})`).join(' · ');return `<div style="padding:7px 0;border-bottom:0.5px solid var(--border);font-size:11px;"><span style="color:var(--accent);font-weight:500;">第${r.round}轮 (周期${r.cycle})</span>  ${e}</div>`;}).join('');
+}
+function ptsRenderAdv(){
+  const el=document.getElementById('pts-adv-content');if(!ps.advGroups.length){el.innerHTML=`<div class="alert">还没有完成任何 3 轮周期</div>`;return;}
+  el.innerHTML=`<div class="alert">每完成3轮积分，末三位加入大冒险，积分重置</div>`+ps.advGroups.map(g=>{const sorted=[...ps.players].sort((a,b)=>(ps.scores[b]||0)-(ps.scores[a]||0));const winners=sorted.filter(p=>!g.losers.includes(p));return `<div class="adv-section"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span class="adv-section-title" style="font-weight:700;">第 ${g.cycle} 周期</span><span style="font-size:10px;background:rgba(70,176,101,0.12);padding:2px 8px;border-radius:40px;">大冒险 ×${g.losers.length}</span></div><div style="margin-bottom:4px;font-size:11px;">末三位 · 需参加大冒险</div><div>${g.losers.map(p=>`<span class="loser-chip" style="background:rgba(192,57,43,0.1);padding:4px 12px;">${p} (${g.scores[p]}分)</span>`).join('')}</div>${winners.length?`<div style="margin-top:8px;font-size:11px;">其余玩家</div><div>${winners.map(p=>`<span class="winner-chip" style="background:rgba(70,176,101,0.1);padding:4px 12px;">${p}</span>`).join('')}</div>`:''}</div>`;}).join('');
+}
+
+// RACE 冲线对抗赛（新增模块，独立状态，不影响 SPY / PTS）
+let rs={
+  names:lsG('rs_names',[]),
+  teamA:lsG('rs_teamA',[]),teamB:lsG('rs_teamB',[]),
+  scoreA:lsG('rs_scoreA',0),scoreB:lsG('rs_scoreB',0),
+  round:lsG('rs_round',1),
+  finA:lsG('rs_finA',null),finB:lsG('rs_finB',null),
+  hist:lsG('rs_hist',[]),
+  adv:lsG('rs_adv',{}),
+  winner:lsG('rs_winner',null),
+  active:lsG('rs_active',false)
+};
+function rsSave(){['names','teamA','teamB','scoreA','scoreB','round','finA','finB','hist','adv','winner','active'].forEach(k=>lsS('rs_'+k,rs[k]));}
+
+function raceTab(t){
+  ['setup','game','result'].forEach(x=>{
+    document.getElementById('race-pg-'+x).classList.remove('active');
+    document.getElementById('rtab-'+x).classList.remove('active');
+  });
+  document.getElementById('race-pg-'+t).classList.add('active');
+  document.getElementById('rtab-'+t).classList.add('active');
+  if(t==='game')raceRenderGame();
+  if(t==='result'&&rs.winner)raceBuildResult();
+}
+
+function raceRenderSetup(){
+  document.getElementById('race-name-list').innerHTML=rs.names.map((n,i)=>`
+    <div class="row">
+      <div class="avatar" style="background:${AC[i%AC.length]}22;color:${AC[i%AC.length]};">${n.charAt(0).toUpperCase()}</div>
+      <input type="text" class="flex-1" value="${n}" onchange="rs.names[${i}]=this.value.trim()||rs.names[${i}];rsSave()" style="height:34px"/>
+      <button style="width:30px;height:30px;border-radius:40px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;" onclick="rs.names.splice(${i},1);rsSave();raceRenderSetup()">×</button>
+    </div>`).join('');
+  document.getElementById('race-add-row').style.display=rs.names.length>=6?'none':'flex';
+}
+function raceAddName(){
+  const inp=document.getElementById('race-name-inp');
+  const v=inp.value.trim();if(!v)return;
+  if(rs.names.includes(v)){toast('名字重复了');return;}
+  if(rs.names.length>=6){toast('已达到 6 人');return;}
+  rs.names.push(v);inp.value='';rsSave();raceRenderSetup();
+}
+function racePickFinishers(){
+  rs.finA=rs.teamA[Math.floor(Math.random()*rs.teamA.length)];
+  rs.finB=rs.teamB[Math.floor(Math.random()*rs.teamB.length)];
+}
+function raceStart(){
+  if(rs.names.length!==6){toast('需要恰好 6 位参赛者');return;}
+  const s=shuffle(rs.names);
+  rs.teamA=s.slice(0,3);rs.teamB=s.slice(3,6);
+  rs.scoreA=0;rs.scoreB=0;rs.round=1;rs.hist=[];rs.winner=null;rs.active=true;
+  rs.adv={};rs.names.forEach(n=>rs.adv[n]=0);
+  racePickFinishers();
+  rsSave();raceRenderGame();raceTab('game');
+}
+function raceReset(){
+  rs.active=false;rs.winner=null;rs.teamA=[];rs.teamB=[];rs.hist=[];
+  rs.round=1;rs.scoreA=0;rs.scoreB=0;rs.adv={};rs.finA=null;rs.finB=null;
+  rsSave();raceRenderSetup();raceTab('setup');
+}
+function raceRenderGame(){
+  document.getElementById('race-rnum').textContent=`ROUND ${rs.round}`;
+  document.getElementById('race-rname').textContent=`第 ${rs.round} 局`;
+  document.getElementById('race-sa').textContent=rs.scoreA;
+  document.getElementById('race-sb').textContent=rs.scoreB;
+  document.getElementById('race-bara').style.width=Math.min(100,rs.scoreA*20)+'%';
+  document.getElementById('race-barb').style.width=Math.min(100,rs.scoreB*20)+'%';
+  raceRenderTeam('A');raceRenderTeam('B');
+  document.getElementById('race-finishers').innerHTML=`
+    <div class="fchip fca">A队冲线人：${rs.finA}</div>
+    <div class="fchip fcb">B队冲线人：${rs.finB}</div>`;
+  raceRenderHist();
+}
+function raceRenderTeam(t){
+  const el=document.getElementById('race-p'+t.toLowerCase());
+  const arr=t==='A'?rs.teamA:rs.teamB;
+  const fin=t==='A'?rs.finA:rs.finB;
+  el.innerHTML=arr.map(n=>`<div class="p-row ${n===fin?'on-field':''}">
+    <div class="avatar" style="width:22px;height:22px;font-size:10px;">${n.charAt(0).toUpperCase()}</div>
+    <span>${n}</span>
+    ${n===fin?'<span class="field-tag">冲线人</span>':''}
+  </div>`).join('');
+}
+function raceRenderHist(){
+  const c=document.getElementById('race-hist-card');
+  if(!rs.hist.length){c.style.display='none';return;}
+  c.style.display='block';
+  document.getElementById('race-hist').innerHTML=[...rs.hist].reverse().map(h=>{
+    let label;
+    if(h.type==='NONE')label=`<span style="color:var(--muted)">不计分 · 全员+1大冒险</span>`;
+    else label=`<span style="font-weight:700;color:${h.winner==='A'?'var(--accent2)':'var(--accent)'}">${h.winner}队 +1</span>`;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:11px;">
+      <div style="width:20px;height:20px;border-radius:50%;background:rgba(0,142,107,0.12);color:var(--accent);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">${h.r}</div>
+      <span>A:${h.finA} vs B:${h.finB}</span>
+      <span style="margin-left:auto">${label}</span>
+    </div>`;
+  }).join('');
+}
+function raceResult(type){
+  const rec={r:rs.round,finA:rs.finA,finB:rs.finB,type:type};
+  if(type==='NONE'){
+    rec.winner=null;
+    rs.names.forEach(n=>rs.adv[n]=(rs.adv[n]||0)+1);
+  }else if(type==='A'||type==='ABA'){
+    rs.scoreA++;rec.winner='A';
+  }else if(type==='B'||type==='ABB'){
+    rs.scoreB++;rec.winner='B';
+  }
+  rs.hist.push(rec);
+  if(rs.scoreA>=5||rs.scoreB>=5){
+    rs.winner=rs.scoreA>=5?'A':'B';
+    rsSave();raceBuildResult();raceTab('result');return;
+  }
+  rs.round++;
+  racePickFinishers();
+  rsSave();raceRenderGame();
+}
+function raceBuildResult(){
+  const W=rs.winner,L=W==='A'?'B':'A';
+  const wArr=W==='A'?rs.teamA:rs.teamB;
+  const lArr=L==='A'?rs.teamA:rs.teamB;
+  document.getElementById('race-win-h').textContent=`队伍 ${W} 胜利`;
+  document.getElementById('race-win-s').textContent=`${rs.scoreA} : ${rs.scoreB} 终结（先到 5 分）`;
+  const total=rs.names.length*2;
+  const each=(total/3).toFixed(1);
+  document.getElementById('race-winners').innerHTML=wArr.map(n=>`<span class="winner-chip">${n} +${each}个</span>`).join('')+`<div style="font-size:11px;color:var(--muted);margin-top:8px">奖池共 ${total}个奖励（每人2个奖励），赢方3人</div>`;
+  document.getElementById('race-loser-list').innerHTML=lArr.map(n=>`<span class="loser-chip">${n} ×3</span>`).join('');
+  document.getElementById('race-adv-count').innerHTML=rs.names.map(n=>`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:0.5px solid var(--border);"><span>${n}</span><span style="font-weight:700;color:var(--accent)">${rs.adv[n]||0} 次</span></div>`).join('');
+  document.getElementById('race-settle').innerHTML='';
+}
+function raceConfirm(){
+  const W=rs.winner,L=W==='A'?'B':'A';
+  const wArr=W==='A'?rs.teamA:rs.teamB;
+  const lArr=L==='A'?rs.teamA:rs.teamB;
+  let h=`<div class="panel" style="margin-top:12px"><div class="panel-title">最终结果</div>`;
+  h+=`<div style="padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;">赢方队伍：<strong style="color:var(--accent2)">${wArr.join('、')}</strong>，奖池每人 ${(rs.names.length*2/3).toFixed(1)}r</div>`;
+  h+=`<div style="padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;">大冒险执行人：<strong style="color:var(--danger)">${lArr.join('、')}</strong>，每人各执行 3 个大冒险（共9个，使用其他脚本）</div>`;
+  h+=`<div style="padding:8px 0;font-size:12px;">全员大冒险累计次数：${rs.names.map(n=>`${n} ×${rs.adv[n]||0}`).join('，')}（用转盘逐个执行）</div>`;
+  h+=`</div>`;
+  document.getElementById('race-settle').innerHTML=h;
+  document.getElementById('race-settle').scrollIntoView({behavior:'smooth'});
+}
+
+(function(){if(ss.active&&ss.winner){selectMode('spy');spyBuildResult();spyTab('result');return;}if(ss.active){selectMode('spy');spyRenderGame();spyTab('game');return;}if(ps.started){selectMode('pts');ptsRenderGame();ptsTab('game');return;}if(rs.active&&rs.winner){selectMode('race');raceBuildResult();raceTab('result');return;}if(rs.active){selectMode('race');raceRenderGame();raceTab('game');return;}})();
+</script>
+</body>
+</html>
