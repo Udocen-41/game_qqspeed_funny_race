@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>5941</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #FBFFF2;
+    --surface: #eaf4d0;
+    --border:  rgba(0,142,107,0.22);
+    --accent:  #008E6B;
+    --accent2: #46B065;
+    --text:    #003d2a;
+    --muted:   #5a8060;
+    --radius:  12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 70% 60% at 10% 20%, rgba(129,197,112,0.28) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 50% at 90% 80%, rgba(0,142,107,0.14) 0%, transparent 55%);
+    color: var(--text);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 36px 24px 60px;
+    overflow-x: hidden;
+  }
+
+  /* 格纹底纹 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,142,107,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,142,107,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; width: 100%; max-width: 780px; }
+
+  /* ── 标题 ── */
+  .page-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    background: rgba(0,142,107,0.1);
+    border: 1px solid rgba(0,142,107,0.3);
+    display: inline-block;
+    padding: 4px 14px;
+    margin-bottom: 28px;
+  }
+
+  /* ── 左右布局 ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: stretch;
+  }
+  @media (max-width: 600px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  /* ── 左栏：转盘 ── */
+  .col-wheel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .wheel-outer {
+    position: relative;
+    width: 280px;
+    height: 280px;
+  }
+  .wheel-ring {
+    position: absolute;
+    inset: -7px;
+    border-radius: 50%;
+    background: conic-gradient(#008E6B, #46B065, #81C570, #2e7d52, #008E6B);
+    animation: spinRing 8s linear infinite;
+    opacity: 0.4;
+  }
+  @keyframes spinRing { to { transform: rotate(360deg); } }
+  .wheel-ring-mask {
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+  canvas#wheel {
+    position: relative;
+    z-index: 2;
+    border-radius: 50%;
+    display: block;
+  }
+  .pointer {
+    position: absolute;
+    top: 50%;
+    right: -16px;
+    transform: translateY(-50%);
+    width: 0; height: 0;
+    border-top: 13px solid transparent;
+    border-bottom: 13px solid transparent;
+    border-right: 26px solid var(--accent);
+    z-index: 10;
+  }
+  .center-dot {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px; height: 24px;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    z-index: 10;
+  }
+
+  .result-banner {
+    width: 100%;
+    max-width: 280px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    text-align: center;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.3s;
+  }
+  .result-banner.show { border-color: var(--accent); }
+  .result-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    transition: color 0.3s;
+    line-height: 1.5;
+  }
+  .result-banner.show .result-text { color: var(--accent); }
+
+  .spin-btn {
+    width: 100%;
+    max-width: 280px;
+    padding: 14px;
+    background: var(--accent);
+    color: #FBFFF2;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.15s, opacity 0.2s;
+  }
+  .spin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,142,107,0.28); }
+  .spin-btn:active { transform: scale(0.97); }
+  .spin-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ── 右栏：任务管理 ── */
+  .col-tasks {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-self: stretch;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .task-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    max-height: 340px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .task-list::-webkit-scrollbar { width: 3px; }
+  .task-list::-webkit-scrollbar-track { background: transparent; }
+  .task-list::-webkit-scrollbar-thumb { background: rgba(0,142,107,0.2); border-radius: 2px; }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    animation: fadeIn 0.18s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+
+  .task-item.highlighted {
+    border-color: var(--accent);
+    background: rgba(0,142,107,0.08);
+  }
+
+  .task-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .task-name {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+  .task-item.highlighted .task-name { color: var(--accent); font-weight: 700; }
+
+  .task-edit-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--accent);
+    color: var(--text);
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    outline: none;
+    padding: 2px 0;
+  }
+
+  .task-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .task-btn:hover { background: rgba(0,142,107,0.1); }
+  .task-btn.edit  { color: var(--accent); }
+  .task-btn.save  { color: #2e7d52; }
+  .task-btn.del   { color: #c0392b; }
+
+  .add-row {
+    display: flex;
+    gap: 8px;
+  }
+  .add-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: 12px;
+    font-family: 'Noto Sans SC', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-input:focus { border-color: var(--accent); }
+  .add-input::placeholder { color: var(--muted); }
+
+  .add-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #FBFFF2;
+    font-size: 20px;
+    width: 38px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .add-btn:hover { opacity: 0.85; }
+  .add-btn:active { transform: scale(0.95); }
+
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-title">解释权归似绎所有</div>
+
+  <div class="layout">
+
+    <!-- 左：转盘 -->
+    <div class="col-wheel">
+      <div class="wheel-outer">
+        <div class="wheel-ring"></div>
+        <div class="wheel-ring-mask"></div>
+        <canvas id="wheel" width="280" height="280"></canvas>
+        <div class="pointer"></div>
+        <div class="center-dot"></div>
+      </div>
+
+      <div class="result-banner" id="resultBanner">
+        <div class="result-text" id="resultText">点击下方按钮开始</div>
+      </div>
+
+      <button class="spin-btn" id="spinBtn" onclick="startSpin()">开 始 转 动</button>
+    </div>
+
+    <!-- 右：任务管理 -->
+    <div class="col-tasks">
+      <div class="panel-title">任务列表</div>
+      <ul class="task-list" id="taskList"></ul>
+      <div class="add-row">
+        <input class="add-input" id="addInput" placeholder="输入新任务名称…" maxlength="40" />
+        <button class="add-btn" onclick="addTask()">+</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── 数据 ─────────────────────────────────────────────
+const STORAGE_KEY = 'wheelTaskItems_5941';
+
+const DEFAULT_ITEMS = [
+  { name: '换指定单人头像1天', weight: 1 },
+  { name: '换指定情侣头像1天', weight: 1 },
+  { name: '群内唱歌4句不撤回', weight: 1 },
+  { name: '群内随机艾特一人语音表白至少20字', weight: 1 },
+  { name: '群内撒娇4句语音不撤回', weight: 1 },
+  { name: '修改指定群马甲1天', weight: 1 },
+  { name: '截图刷视频软件浏览记录不撤回', weight: 1 },
+  { name: '录视频"魔镜魔镜谁最美，噢，是我自己"不撤回', weight: 1 },
+  { name: '录视频"我的手有多少小帅小美等着牵"不撤回', weight: 1 },
+  { name: '群内指定绕口令6句不撤回', weight: 1 },
+  { name: '空间发"网恋被骗8块，正在追回中"1天', weight: 1 },
+  { name: '空间发"我好像有点喜欢你了"1天', weight: 1 },
+  { name: '录视频"我是时代最强"不撤回', weight: 1 },
+  { name: '群内对随机一个队友夹子音夸赞4句语音不撤回', weight: 1 },
+  { name: '群内模仿霸道总裁念一段台词不撤回', weight: 1 },
+  { name: '空间发"突然好想谈恋爱"1天', weight: 1 },
+  { name: '连续说10遍“我是猪”，但每一遍要用不同的情绪', weight: 1 },
+  { name: '给队友发“突然想你了，没什么事”，对方回什么你都只回一个“嗯”', weight: 1 },
+  { name: '用“霸道总裁”和“小娇妻”两种身份，自己跟自己对话30秒', weight: 1 },
+];
+
+function loadItems() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.warn('读取本地存储失败，使用默认列表', e);
+  }
+  return DEFAULT_ITEMS;
+}
+
+function saveItems() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch (e) {
+    console.warn('保存本地存储失败', e);
+  }
+}
+
+let items = loadItems();
+
+const COLORS = [
+  '#008E6B','#46B065','#81C570','#2e7d52','#005c45',
+  '#3a9e60','#6ab85a','#007a58','#4caf7d','#1a7a50',
+  '#9fd98a','#2d9e6b','#57c987','#0e6e4a','#74d49a'
+];
+
+let angle = 0;
+let spinning = false;
+let lastWinIdx = -1;
+
+// ── 转盘（原版逻辑，未改动）──────────────────────────
+function total() {
+  return items.reduce((s, x) => s + x.weight, 0);
+}
+
+function drawWheel() {
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const cx = 140, cy = 140, r = 132;
+  ctx.clearRect(0, 0, 280, 280);
+
+  const tot = total();
+  let start = angle * Math.PI / 180;
+
+  items.forEach((item, i) => {
+    const sweep = (item.weight / tot) * Math.PI * 2;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, start + sweep);
+    ctx.closePath();
+    ctx.fillStyle = COLORS[i % COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(251,255,242,0.35)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    start += sweep;
+  });
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,142,107,0.18)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function startSpin() {
+  if (spinning || items.length === 0) return;
+  spinning = true;
+  lastWinIdx = -1;
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('resultBanner').classList.remove('show');
+  document.getElementById('resultText').textContent = '转动中…';
+  renderTaskList(-1);
+
+  const tot = total();
+  let rand = Math.random() * tot;
+  let winIdx = 0;
+  for (let i = 0; i < items.length; i++) {
+    rand -= items[i].weight;
+    if (rand <= 0) { winIdx = i; break; }
+  }
+
+  const segAngles = [];
+  let cur = 0;
+  items.forEach(item => {
+    const deg = (item.weight / tot) * 360;
+    segAngles.push({ mid: cur + deg / 2 });
+    cur += deg;
+  });
+
+  const winMid = segAngles[winIdx].mid;
+  const currentNorm = ((angle % 360) + 360) % 360;
+  const diff = (360 - winMid - currentNorm + 360) % 360;
+  const totalSpin = 360 * (6 + Math.floor(Math.random() * 4)) + diff;
+
+  const duration = 4000 + Math.random() * 1000;
+  const startAngle = angle;
+  const startTime = performance.now();
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function frame(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    angle = startAngle + totalSpin * easeOut(t);
+    drawWheel();
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      spinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      showResult(winIdx);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+function showResult(idx) {
+  lastWinIdx = idx;
+  const banner = document.getElementById('resultBanner');
+  document.getElementById('resultText').textContent = items[idx].name;
+  banner.classList.add('show');
+  renderTaskList(idx);
+}
+
+// ── 任务管理（新增）──────────────────────────────────
+function renderTaskList(highlightIdx = -1) {
+  const ul = document.getElementById('taskList');
+  ul.innerHTML = '';
+  items.forEach((item, i) => {
+    const li = document.createElement('li');
+    li.className = 'task-item' + (i === highlightIdx ? ' highlighted' : '');
+    li.dataset.idx = i;
+
+    const dot = document.createElement('span');
+    dot.className = 'task-dot';
+    dot.style.background = COLORS[i % COLORS.length];
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'task-name';
+    nameSpan.textContent = item.name;
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'task-btn edit';
+    editBtn.textContent = '✎';
+    editBtn.title = '编辑';
+    editBtn.onclick = () => startEdit(i);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'task-btn del';
+    delBtn.textContent = '✕';
+    delBtn.title = '删除';
+    delBtn.onclick = () => deleteTask(i);
+
+    li.appendChild(dot);
+    li.appendChild(nameSpan);
+    li.appendChild(editBtn);
+    li.appendChild(delBtn);
+    ul.appendChild(li);
+  });
+}
+
+function startEdit(idx) {
+  const ul = document.getElementById('taskList');
+  const li = ul.querySelector(`[data-idx="${idx}"]`);
+  if (!li) return;
+  li.innerHTML = '';
+
+  const dot = document.createElement('span');
+  dot.className = 'task-dot';
+  dot.style.background = COLORS[idx % COLORS.length];
+
+  const input = document.createElement('input');
+  input.className = 'task-edit-input';
+  input.value = items[idx].name;
+  input.maxLength = 40;
+  input.onkeydown = e => { if (e.key === 'Enter') saveEdit(idx, input.value); };
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'task-btn save';
+  saveBtn.textContent = '✔';
+  saveBtn.title = '保存';
+  saveBtn.onclick = () => saveEdit(idx, input.value);
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'task-btn edit';
+  cancelBtn.textContent = '✕';
+  cancelBtn.title = '取消';
+  cancelBtn.onclick = () => renderTaskList(lastWinIdx);
+
+  li.appendChild(dot);
+  li.appendChild(input);
+  li.appendChild(saveBtn);
+  li.appendChild(cancelBtn);
+  input.focus();
+}
+
+function saveEdit(idx, val) {
+  val = val.trim();
+  if (!val) return;
+  items[idx].name = val;
+  saveItems();
+  drawWheel();
+  renderTaskList(lastWinIdx);
+}
+
+function deleteTask(idx) {
+  if (items.length <= 2) { alert('至少保留2个'); return; }
+  items.splice(idx, 1);
+  if (lastWinIdx >= items.length) lastWinIdx = -1;
+  saveItems();
+  drawWheel();
+  renderTaskList(lastWinIdx);
+}
+
+function addTask() {
+  const input = document.getElementById('addInput');
+  const val = input.value.trim();
+  if (!val) return;
+  items.push({ name: val, weight: 1 });
+  input.value = '';
+  saveItems();
+  drawWheel();
+  renderTaskList(lastWinIdx);
+  const ul = document.getElementById('taskList');
+  ul.scrollTop = ul.scrollHeight;
+}
+
+document.getElementById('addInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTask();
+});
+
+// ── 初始化 ────────────────────────────────────────────
+drawWheel();
+renderTaskList();
+</script>
+</body>
+</html>
